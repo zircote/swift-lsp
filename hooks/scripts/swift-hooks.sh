@@ -1,6 +1,6 @@
 #!/bin/bash
 # Swift development hooks for Claude Code
-# Handles: formatting, linting, building, testing
+# Fast-only hooks - heavy commands shown as hints
 
 set -o pipefail
 
@@ -14,23 +14,21 @@ ext="${file_path##*.}"
 
 case "$ext" in
     swift)
-        # SwiftFormat (formatting)
+        # SwiftFormat (fast - single file)
         if command -v swiftformat >/dev/null 2>&1; then
             swiftformat "$file_path" --quiet 2>/dev/null || true
         fi
 
-        # SwiftLint (linting)
+        # SwiftLint auto-correct (fast - single file)
         if command -v swiftlint >/dev/null 2>&1; then
             swiftlint lint --path "$file_path" --quiet 2>/dev/null || true
         fi
 
-        # Syntax check via swift compiler
-        if command -v swiftc >/dev/null 2>&1; then
-            swiftc -parse "$file_path" 2>&1 || true
-        fi
-
-        # Surface TODO/FIXME comments
+        # TODO/FIXME check (fast - grep only)
         grep -n -E '(TODO|FIXME|HACK|XXX|BUG):' "$file_path" 2>/dev/null || true
+
+        # Hints for on-demand commands
+        echo "💡 swiftc -parse && swift build && swift test"
         ;;
 esac
 
